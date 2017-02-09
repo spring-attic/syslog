@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,23 +28,18 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
 
 import org.hamcrest.Matchers;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.cloud.stream.app.test.PropertiesInitializer;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.messaging.Source;
 import org.springframework.cloud.stream.test.binder.MessageCollector;
 import org.springframework.context.ApplicationContext;
@@ -56,18 +51,17 @@ import org.springframework.integration.syslog.inbound.UdpSyslogReceivingChannelA
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Tests for SyslogSource.
  *
  * @author Gary Russell
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = SyslogSourceTests.SyslogSourceApplication.class,
-								initializers = PropertiesInitializer.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
-@IntegrationTest("syslog.port = 0")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = "syslog.port = 0")
 public abstract class SyslogSourceTests {
 
 	protected static final String RFC3164_PACKET = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE";
@@ -97,21 +91,7 @@ public abstract class SyslogSourceTests {
 	@Autowired
 	protected ApplicationContext context;
 
-	@Value("${syslog.port}")
-	private int port;
-
-	@BeforeClass
-	public static void configureSource() throws Throwable {
-		 // TODO: we can remove this when SI 4.3 is used; UDP can then specify port=0, TCP can already do it.
-		DatagramSocket socket = new DatagramSocket(0);
-		int port = socket.getLocalPort();
-		socket.close();
-		Properties properties = new Properties();
-		properties.put("syslog.port", Integer.toString(port));
-		PropertiesInitializer.PROPERTIES = properties;
-	}
-
-	@IntegrationTest({ "syslog.port = 0", "syslog.nio = true", "syslog.reverseLookup = true",
+	@TestPropertySource(properties = { "syslog.port = 0", "syslog.nio = true", "syslog.reverseLookup = true",
 					"syslog.socketTimeout = 123", "syslog.bufferSize = 5" })
 	public static class PropertiesPopulatedTests extends SyslogSourceTests {
 
@@ -150,7 +130,7 @@ public abstract class SyslogSourceTests {
 
 	}
 
-	@IntegrationTest({ "syslog.port = 0", "syslog.rfc = 5424" })
+	@TestPropertySource(properties = { "syslog.port = 0", "syslog.rfc = 5424" })
 	public static class Tcp5424Tests extends SyslogSourceTests {
 
 		@Test
@@ -164,7 +144,7 @@ public abstract class SyslogSourceTests {
 
 	}
 
-	@IntegrationTest("syslog.protocol = udp")
+	@TestPropertySource(properties = "syslog.protocol = udp")
 	public static class Udp3164Tests extends SyslogSourceTests {
 
 		@Test
@@ -178,7 +158,7 @@ public abstract class SyslogSourceTests {
 
 	}
 
-	@IntegrationTest({ "syslog.protocol = udp", "syslog.rfc = 5424" })
+	@TestPropertySource(properties = { "syslog.protocol = udp", "syslog.rfc = 5424" })
 	public static class Udp5424Tests extends SyslogSourceTests {
 
 		@Test
@@ -192,7 +172,7 @@ public abstract class SyslogSourceTests {
 
 	}
 
-	@IntegrationTest("syslog.protocol = both")
+	@TestPropertySource(properties = "syslog.protocol = both")
 	public static class TcpAndUdp3164Tests extends SyslogSourceTests {
 
 		@Test
@@ -212,7 +192,7 @@ public abstract class SyslogSourceTests {
 
 	}
 
-	@IntegrationTest({ "syslog.protocol = both", "syslog.rfc = 5424" })
+	@TestPropertySource(properties = { "syslog.protocol = both", "syslog.rfc = 5424" })
 	public static class TcpAndUdp5424Tests extends SyslogSourceTests {
 
 		@Test
@@ -240,10 +220,10 @@ public abstract class SyslogSourceTests {
 	}
 
 	protected void sendUdp(String syslog) throws Exception {
-		waitUdp();
+		int port = waitUdp();
 		DatagramSocket socket = new DatagramSocket();
 		DatagramPacket packet = new DatagramPacket(syslog.getBytes(), syslog.length());
-		packet.setSocketAddress(new InetSocketAddress("localhost", this.port));
+		packet.setSocketAddress(new InetSocketAddress("localhost", port));
 		socket.send(packet);
 		socket.close();
 	}
@@ -259,12 +239,13 @@ public abstract class SyslogSourceTests {
 		return port;
 	}
 
-	private void waitUdp() throws Exception {
+	private int waitUdp() throws Exception {
 		int n = 0;
 		DirectFieldAccessor dfa = new DirectFieldAccessor(this.udpAdapter);
 		while (n++ < 100 && !((UnicastReceivingChannelAdapter) dfa.getPropertyValue("udpAdapter")).isListening()) {
 			Thread.sleep(100);
 		}
+		return ((UnicastReceivingChannelAdapter) dfa.getPropertyValue("udpAdapter")).getPort();
 	}
 
 	@SpringBootApplication
