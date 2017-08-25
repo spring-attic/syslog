@@ -4,6 +4,20 @@
 The syslog source receives SYSLOG packets over UDP, TCP, or both.
 RFC3164 (BSD) and RFC5424 formats are supported.
 
+== Input
+
+N/A
+
+== Output
+
+=== Headers
+
+* `content-type: application/x-java-object`
+
+=== Payload
+
+* `Map of field/values`
+
 == Options
 
 The **$$syslog$$** $$source$$ has the following options:
@@ -22,7 +36,20 @@ $$syslog.socket-timeout$$:: $$the socket timeout.$$ *($$Integer$$, default: `$$0
 == Build
 
 ```
-$> mvn package
+$ ./mvnw clean install -PgenerateApps
+$ cd apps
 ```
+You can find the corresponding binder based projects here.
+You can then cd into one of the folders and build it:
+```
+$ ./mvnw clean package
+```
+
+== Examples
+
+```
+java -jar syslog-source.jar --syslog.rfc=5424 --syslog.protocol=tcp
+```
+
 
 
