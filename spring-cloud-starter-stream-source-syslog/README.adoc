@@ -32,7 +32,6 @@ $$syslog.rfc$$:: $$'5424' or '3164' - the syslog format according the the RFC; 3
 $$syslog.socket-timeout$$:: $$the socket timeout.$$ *($$Integer$$, default: `$$0$$`)*
 //end::configuration-properties[]
 
-//end::ref-doc[]
 == Build
 
 ```
@@ -50,6 +49,6 @@ $ ./mvnw clean package
 ```
 java -jar syslog-source.jar --syslog.rfc=5424 --syslog.protocol=tcp
 ```
-
+//end::ref-doc[]
 
 
