@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.cloud.stream.app</groupId>
 	<artifactId>syslog-app-dependencies</artifactId>
-	<version>1.3.0.BUILD-SNAPSHOT</version>
+	<version>1.3.0.RELEASE</version>
 	<packaging>pom</packaging>
 	<name>syslog-app-dependencies</name>
 	<description>Spring Cloud Stream Syslog App Dependencies</description>
@@ -21,7 +21,7 @@
 			<dependency>
 				<groupId>org.springframework.cloud.stream.app</groupId>
 				<artifactId>spring-cloud-starter-stream-source-syslog</artifactId>
-				<version>1.3.0.BUILD-SNAPSHOT</version>
+				<version>1.3.0.RELEASE</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
