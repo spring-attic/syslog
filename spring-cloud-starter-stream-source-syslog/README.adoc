@@ -12,7 +12,7 @@ N/A
 
 === Headers
 
-* `content-type: application/x-java-object`
+* `content-type: application/json`
 
 === Payload
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.stream.app.syslog.source;
 
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -32,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +58,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * Tests for SyslogSource.
  *
  * @author Gary Russell
+ * @author Chris Schaefer
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
@@ -72,6 +73,7 @@ public abstract class SyslogSourceTests {
 			+ "[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] "
 			+ "Removing instance";
 
+	protected final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
 	protected Source channels;
@@ -124,8 +126,9 @@ public abstract class SyslogSourceTests {
 			sendTcp(SyslogSourceTests.RFC3164_PACKET + "\n");
 			Message<?> syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("WEBERN", ((Map<?, ?>) syslog.getPayload()).get("HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			Map<?, ?> payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("WEBERN", payload.get("HOST"));
 		}
 
 	}
@@ -138,8 +141,9 @@ public abstract class SyslogSourceTests {
 			sendTcp("253 " + RFC5424_PACKET);
 			Message<?> syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("loggregator", ((Map<?, ?>) syslog.getPayload()).get("syslog_HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			Map<?, ?> payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("loggregator", payload.get("syslog_HOST"));
 		}
 
 	}
@@ -152,8 +156,9 @@ public abstract class SyslogSourceTests {
 			sendUdp(RFC3164_PACKET);
 			Message<?> syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("WEBERN", ((Map<?, ?>) syslog.getPayload()).get("HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			Map<?, ?> payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("WEBERN", payload.get("HOST"));
 		}
 
 	}
@@ -166,8 +171,9 @@ public abstract class SyslogSourceTests {
 			sendUdp(RFC5424_PACKET);
 			Message<?> syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("loggregator", ((Map<?, ?>) syslog.getPayload()).get("syslog_HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			Map<?, ?> payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("loggregator", payload.get("syslog_HOST"));
 		}
 
 	}
@@ -180,14 +186,16 @@ public abstract class SyslogSourceTests {
 			sendTcp(SyslogSourceTests.RFC3164_PACKET + "\n");
 			Message<?> syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("WEBERN", ((Map<?, ?>) syslog.getPayload()).get("HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			Map<?, ?> payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("WEBERN", payload.get("HOST"));
 
 			sendUdp(RFC3164_PACKET);
 			syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("WEBERN", ((Map<?, ?>) syslog.getPayload()).get("HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("WEBERN", payload.get("HOST"));
 		}
 
 	}
@@ -200,14 +208,16 @@ public abstract class SyslogSourceTests {
 			sendTcp("253 " + RFC5424_PACKET);
 			Message<?> syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("loggregator", ((Map<?, ?>) syslog.getPayload()).get("syslog_HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			Map<?, ?> payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("loggregator", payload.get("syslog_HOST"));
 
 			sendUdp(RFC5424_PACKET);
 			syslog = messageCollector.forChannel(channels.output()).poll(10, TimeUnit.SECONDS);
 			assertNotNull(syslog);
-			assertThat(syslog.getPayload(), instanceOf(Map.class));
-			assertEquals("loggregator", ((Map<?, ?>) syslog.getPayload()).get("syslog_HOST"));
+			assertThat(syslog.getPayload(), Matchers.instanceOf(String.class));
+			payload = objectMapper.readValue((String) syslog.getPayload(), Map.class);
+			assertEquals("loggregator", payload.get("syslog_HOST"));
 		}
 
 	}
