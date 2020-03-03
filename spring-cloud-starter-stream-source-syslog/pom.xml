@@ -48,6 +48,7 @@
 							<noAppSpecificTestSupportArtifact>true</noAppSpecificTestSupportArtifact>
 						</syslog-source>
 					</generatedApps>
+					<enableContainerImageMetadata>true</enableContainerImageMetadata>
 				</configuration>
 			</plugin>
 		</plugins>
